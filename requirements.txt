@@ -3,6 +3,14 @@ uvicorn==0.34.0
 pydantic==2.10.6
 pydantic-settings==2.7.1
 python-dotenv==1.0.1
-pytest==8.3.4
+yt-dlp==2024.12.23
+faster-whisper==1.1.0
+pydub==0.25.1
+anthropic==0.43.0
 httpx==0.28.1
+<<<<<<< HEAD
 elevenlabs==2.37.0
+=======
+sse-starlette==2.2.1
+pytest==8.3.4
+>>>>>>> 5e24e50 (feat: full backend pipeline + cost breakdown tool)

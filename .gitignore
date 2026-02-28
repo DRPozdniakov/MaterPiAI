@@ -32,5 +32,8 @@ ui/node_modules/
 ui/dist/
 ui/.cache/
 
+# Output
+output/
+
 # Claude
 .claude/

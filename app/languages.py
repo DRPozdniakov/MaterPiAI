@@ -1,0 +1,35 @@
+"""Supported languages for ElevenLabs TTS."""
+
+SUPPORTED_LANGUAGES: list[dict[str, str]] = [
+    {"code": "en", "name": "English"},
+    {"code": "ja", "name": "Japanese"},
+    {"code": "zh", "name": "Chinese"},
+    {"code": "de", "name": "German"},
+    {"code": "hi", "name": "Hindi"},
+    {"code": "fr", "name": "French"},
+    {"code": "ko", "name": "Korean"},
+    {"code": "pt", "name": "Portuguese"},
+    {"code": "it", "name": "Italian"},
+    {"code": "es", "name": "Spanish"},
+    {"code": "id", "name": "Indonesian"},
+    {"code": "nl", "name": "Dutch"},
+    {"code": "tr", "name": "Turkish"},
+    {"code": "fil", "name": "Filipino"},
+    {"code": "pl", "name": "Polish"},
+    {"code": "sv", "name": "Swedish"},
+    {"code": "bg", "name": "Bulgarian"},
+    {"code": "ro", "name": "Romanian"},
+    {"code": "ar", "name": "Arabic"},
+    {"code": "cs", "name": "Czech"},
+    {"code": "el", "name": "Greek"},
+    {"code": "fi", "name": "Finnish"},
+    {"code": "hr", "name": "Croatian"},
+    {"code": "ms", "name": "Malay"},
+    {"code": "sk", "name": "Slovak"},
+    {"code": "da", "name": "Danish"},
+    {"code": "ta", "name": "Tamil"},
+    {"code": "uk", "name": "Ukrainian"},
+    {"code": "ru", "name": "Russian"},
+]
+
+LANGUAGE_CODES: set[str] = {lang["code"] for lang in SUPPORTED_LANGUAGES}

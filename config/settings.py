@@ -1,18 +1,6 @@
 """Application settings loaded from environment variables."""
 
-from pydantic import BaseModel
 from pydantic_settings import BaseSettings
-
-
-class ElevenLabsSettings(BaseModel):
-    """ElevenLabs API configuration."""
-
-    api_key: str = ""
-    model_id: str = "eleven_multilingual_v2"
-    output_format: str = "mp3_44100_128"
-    max_chunk_chars: int = 4500
-    max_retries: int = 3
-    retry_base_delay: float = 1.0
 
 
 class Settings(BaseSettings):
@@ -26,14 +14,38 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
-    # ElevenLabs
-    elevenlabs: ElevenLabsSettings = ElevenLabsSettings()
+    # External services
+    elevenlabs_api_key: str = ""
+    anthropic_api_key: str = ""
 
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "env_nested_delimiter": "__",
-    }
+    # Whisper
+    whisper_model: str = "large-v3"
+    whisper_device: str = "cpu"
+    whisper_compute_type: str = "int8"
+
+    # ElevenLabs TTS
+    elevenlabs_base_url: str = "https://api.elevenlabs.io/v1"
+    elevenlabs_model_id: str = "eleven_multilingual_v2"
+    tts_chunk_max_chars: int = 4500
+
+    # Voice sample
+    voice_sample_duration_sec: int = 45
+
+    # Cost per minute (USD) — for pricing display
+    cost_per_min_whisper: float = 0.0        # local faster-whisper, no API cost
+    cost_per_min_translation: float = 0.018  # Claude Sonnet ~1k tokens in+out/min
+    cost_per_min_tts: float = 0.10           # ElevenLabs ~1000 chars/min
+    cost_per_min_voice_clone: float = 0.0    # included in ElevenLabs plan
+    platform_margin: float = 0.25            # 25% markup
+
+    # Tier duration as fraction of full video
+    tier_short_fraction: float = 0.125   # 12.5% → Full is 8x Short
+    tier_medium_fraction: float = 0.40   # 40%   → Full is 2.5x Medium
+
+    # Output
+    output_dir: str = "output"
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

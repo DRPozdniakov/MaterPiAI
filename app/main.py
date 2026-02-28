@@ -1,31 +1,22 @@
 """MasterPi AI — FastAPI application entry point."""
 
 import logging
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from app.api.routes import router
-from app.services import create_tts_service, create_voice_cloner
-from app.services.tts import TTSService
-from app.services.voice_cloner import VoiceCloner
+from app.api.routes import router as health_router
+from app.api.language_routes import router as language_router
+from app.api.video_routes import router as video_router
+from app.api.job_routes import router as job_router
+from app.exceptions import MasterPiAIException, ValidationError
 from config.settings import settings
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Initialise shared service instances on startup."""
-    app.state.voice_cloner = create_voice_cloner()
-    app.state.tts_service = create_tts_service()
-    logger.info("ElevenLabs services initialised")
-    yield
-
-
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app = FastAPI(title=settings.app_name)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,18 +26,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api/v1")
+app.include_router(health_router, prefix="/api/v1")
+app.include_router(language_router, prefix="/api/v1")
+app.include_router(video_router, prefix="/api/v1")
+app.include_router(job_router, prefix="/api/v1")
 
 
-# ── Dependency helpers ──────────────────────────────────────────────
+@app.exception_handler(ValidationError)
+async def validation_error_handler(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "validation_error",
+            "message": exc.message,
+            "operation": exc.operation,
+            "entity_id": exc.entity_id,
+        },
+    )
 
 
-def get_voice_cloner(request: Request) -> VoiceCloner:
-    return request.app.state.voice_cloner
-
-
-def get_tts_service(request: Request) -> TTSService:
-    return request.app.state.tts_service
+@app.exception_handler(MasterPiAIException)
+async def app_error_handler(request: Request, exc: MasterPiAIException):
+    logger.error("App error: %s [op=%s]", exc.message, exc.operation)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": type(exc).__name__,
+            "message": exc.message,
+            "operation": exc.operation,
+            "entity_id": exc.entity_id,
+        },
+    )
 
 
 @app.get("/")

@@ -34,5 +34,13 @@ class ValidationError(MasterPiAIException):
     """Input validation failures."""
 
 
-class ElevenLabsError(MasterPiAIException):
+class ExternalServiceError(MasterPiAIException):
+    """External API call failures (ElevenLabs, Anthropic, etc.)."""
+
+
+class ElevenLabsError(ExternalServiceError):
     """ElevenLabs API failures."""
+
+
+class DownloadError(MasterPiAIException):
+    """YouTube / media download failures."""

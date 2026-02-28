@@ -1,157 +1,73 @@
-"""Text-to-speech service with sentence-boundary chunking and prosody stitching."""
-
-from __future__ import annotations
+"""ElevenLabs TTS with request stitching for long texts."""
 
 import asyncio
 import logging
-import re
 from pathlib import Path
 
-from app.exceptions import ElevenLabsError
-from app.models.elevenlabs import TTSChunkResult, TTSRequest, TTSResult
-from app.services.elevenlabs_client import ElevenLabsClientProvider
-from config.settings import settings
+import httpx
+
+from app.exceptions import ExternalServiceError
 
 logger = logging.getLogger(__name__)
 
-# Sentence-ending punctuation (ASCII + common Unicode variants)
-_SENTENCE_END = re.compile(r"(?<=[.!?。！？])\s+")
-
-
-def chunk_text(text: str, max_chars: int | None = None) -> list[str]:
-    """Split text into chunks on sentence boundaries, greedily packing up to max_chars.
-
-    Pure function — no side effects.
-    """
-    if max_chars is None:
-        max_chars = settings.elevenlabs.max_chunk_chars
-
-    sentences = _SENTENCE_END.split(text.strip())
-    sentences = [s for s in sentences if s.strip()]
-
-    if not sentences:
-        return []
-
-    chunks: list[str] = []
-    current = sentences[0]
-
-    for sentence in sentences[1:]:
-        candidate = current + " " + sentence
-        if len(candidate) <= max_chars:
-            current = candidate
-        else:
-            chunks.append(current)
-            current = sentence
-
-    chunks.append(current)
-    return chunks
-
 
 class TTSService:
-    """Generates TTS audio using ElevenLabs with prosody stitching across chunks."""
+    def __init__(self, api_key: str, base_url: str, chunk_max_chars: int):
+        self._api_key = api_key
+        self._base_url = base_url
+        self._chunk_max = chunk_max_chars
 
-    def __init__(self, client_factory: ElevenLabsClientProvider) -> None:
-        self._client_factory = client_factory
-
-    async def generate_audio(self, request: TTSRequest) -> TTSResult:
-        """Synthesize full text to an audio file.
-
-        Chunks the text, generates each chunk sequentially (required for
-        previous_request_ids stitching), then concatenates the raw bytes.
-        """
-        chunks = chunk_text(request.text)
-        if not chunks:
-            raise ElevenLabsError(
-                message="No text to synthesize after chunking",
-                operation="generate_audio",
-            )
-
-        client = self._client_factory.get_client(request.api_key)
-        results: list[TTSChunkResult] = []
-        previous_request_ids: list[str] = []
-
+    async def synthesize(
+        self, text: str, voice_id: str, output_dir: Path
+    ) -> list[Path]:
+        """Synthesize text to MP3 chunks. Returns list of chunk file paths."""
+        chunks = self._split_text(text)
+        logger.info("TTS: %d chunks for %d chars", len(chunks), len(text))
+        paths = []
         for i, chunk in enumerate(chunks):
-            logger.info("Generating TTS chunk %d/%d (%d chars)", i + 1, len(chunks), len(chunk))
-            chunk_result = await self._generate_chunk(
-                client=client,
-                voice_id=request.voice_id,
-                text=chunk,
-                index=i,
-                previous_request_ids=previous_request_ids[-3:],
+            path = output_dir / f"tts_chunk_{i:04d}.mp3"
+            await asyncio.to_thread(
+                self._synthesize_chunk, chunk, voice_id, path
             )
-            results.append(chunk_result)
-            previous_request_ids.append(chunk_result.request_id)
+            paths.append(path)
+        return paths
 
-        # Concatenate raw audio bytes and write to file
-        request.output_path.parent.mkdir(parents=True, exist_ok=True)
-        total_bytes = 0
-        with open(request.output_path, "wb") as f:
-            for r in results:
-                f.write(r.audio_bytes)
-                total_bytes += len(r.audio_bytes)
+    def _split_text(self, text: str) -> list[str]:
+        """Split text into chunks at sentence boundaries."""
+        if len(text) <= self._chunk_max:
+            return [text]
 
-        logger.info(
-            "TTS complete: %d chunks, %d bytes → %s",
-            len(results),
-            total_bytes,
-            request.output_path,
-        )
-        return TTSResult(
-            output_path=request.output_path,
-            chunks_count=len(results),
-            total_bytes=total_bytes,
-        )
+        chunks = []
+        current = ""
+        for sentence in text.replace(". ", ".\n").split("\n"):
+            if len(current) + len(sentence) + 1 > self._chunk_max and current:
+                chunks.append(current.strip())
+                current = sentence
+            else:
+                current = f"{current} {sentence}" if current else sentence
+        if current.strip():
+            chunks.append(current.strip())
+        return chunks
 
-    async def _generate_chunk(
-        self,
-        client,
-        voice_id: str,
-        text: str,
-        index: int,
-        previous_request_ids: list[str],
-    ) -> TTSChunkResult:
-        """Generate a single TTS chunk with exponential backoff retry."""
-        max_retries = settings.elevenlabs.max_retries
-        base_delay = settings.elevenlabs.retry_base_delay
-
-        last_exc: Exception | None = None
-        for attempt in range(max_retries):
-            try:
-                response_iter = await client.text_to_speech.with_raw_response.convert(
-                    voice_id=voice_id,
-                    text=text,
-                    model_id=settings.elevenlabs.model_id,
-                    output_format=settings.elevenlabs.output_format,
-                    previous_request_ids=previous_request_ids or None,
-                )
-                # Unwrap the raw response
-                raw_response = await response_iter.__anext__()
-                request_id = raw_response.headers.get("request-id", f"chunk-{index}")
-
-                # Collect audio bytes from the data iterator
-                audio_bytes = b""
-                async for chunk in raw_response.data:
-                    audio_bytes += chunk
-
-                return TTSChunkResult(
-                    index=index,
-                    request_id=request_id,
-                    audio_bytes=audio_bytes,
-                )
-            except Exception as exc:
-                last_exc = exc
-                if attempt < max_retries - 1:
-                    delay = base_delay * (2**attempt)
-                    logger.warning(
-                        "TTS chunk %d attempt %d failed: %s (retrying in %.1fs)",
-                        index,
-                        attempt + 1,
-                        exc,
-                        delay,
-                    )
-                    await asyncio.sleep(delay)
-
-        raise ElevenLabsError(
-            message=f"TTS chunk {index} failed after {max_retries} attempts: {last_exc}",
-            operation="generate_chunk",
-        ) from last_exc
+    def _synthesize_chunk(self, text: str, voice_id: str, output_path: Path) -> None:
+        url = f"{self._base_url}/text-to-speech/{voice_id}"
+        headers = {
+            "xi-api-key": self._api_key,
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "text": text,
+            "model_id": "eleven_multilingual_v2",
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.75,
+            },
+        }
+        response = httpx.post(url, headers=headers, json=payload, timeout=120.0)
+        if response.status_code != 200:
+            raise ExternalServiceError(
+                message=f"ElevenLabs TTS returned {response.status_code}: {response.text}",
+                operation="tts_synthesize",
+            )
+        output_path.write_bytes(response.content)
+        logger.info("TTS chunk saved: %s (%d bytes)", output_path.name, len(response.content))
