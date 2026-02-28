@@ -32,3 +32,7 @@ class PipelineError(MasterPiAIException):
 
 class ValidationError(MasterPiAIException):
     """Input validation failures."""
+
+
+class ElevenLabsError(MasterPiAIException):
+    """ElevenLabs API failures."""
