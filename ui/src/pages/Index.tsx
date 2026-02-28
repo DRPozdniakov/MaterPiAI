@@ -204,14 +204,23 @@ const Index = () => {
                   <span className="font-display text-sm text-gold italic">Consulting<br/>the Oracle...</span>
                 </div>
               ) : isValidUrl && videoId ? (
-                <div className="relative w-[140px] h-[140px] md:w-[160px] md:h-[160px] rounded-full overflow-hidden flex items-center justify-center">
+                <div className="relative w-[140px] h-[140px] md:w-[160px] md:h-[160px] rounded-full overflow-hidden flex items-center justify-center group cursor-pointer"
+                  onClick={() => { setUrl(""); setVideoData(null); setSelectedLang(null); setAnalyzeError(null); }}
+                  title="Click to clear"
+                >
                   <img
                     src={videoData?.video.thumbnail_url || `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
                     alt="Video thumbnail"
-                    className="absolute inset-0 w-full h-full object-cover scale-150"
+                    className="absolute inset-0 w-full h-full object-cover scale-[1.3]"
                   />
-                  <div className="absolute inset-0 bg-background/30" />
-                  <div className="absolute inset-0 cursor-pointer" onClick={() => { setUrl(""); setVideoData(null); setSelectedLang(null); setAnalyzeError(null); }} title="Click to clear" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/40" />
+                  <div className="absolute inset-0 border-4 border-gold/20 rounded-full" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/50">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center">

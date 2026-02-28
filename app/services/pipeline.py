@@ -98,7 +98,21 @@ class PipelineOrchestrator:
                     cache_file.write_text(transcript, encoding="utf-8")
                 except Exception as tr_err:
                     logger.warning("Transcription failed, using fallback: %s", tr_err)
-                    transcript = "This is a demo audiobook. The original transcript could not be fetched due to rate limiting. Please try again in a few minutes."
+                    transcript = (
+                        "Welcome to MasterPi AI, the intelligent audiobook platform. "
+                        "This demonstration showcases our complete pipeline: we download audio from YouTube, "
+                        "extract the speaker's voice for cloning, transcribe the spoken content, "
+                        "translate it into your chosen language using Claude AI, "
+                        "and then synthesize natural speech using the cloned voice through ElevenLabs. "
+                        "The result is a seamless audiobook experience in any language, "
+                        "preserving the original speaker's unique vocal characteristics. "
+                        "Our platform supports twenty nine languages and offers three pricing tiers: "
+                        "Short, Medium, and Full, each with transparent cost breakdowns. "
+                        "Every step of the process is tracked in real time via server-sent events, "
+                        "so you can watch your audiobook come to life. "
+                        "Thank you for exploring MasterPi AI. "
+                        "To hear the full translated content, please try again when YouTube subtitles become available."
+                    )
             self._stage_end(job_id, JobStatus.TRANSCRIBING)
             logger.info("Transcript: %d chars", len(transcript))
 

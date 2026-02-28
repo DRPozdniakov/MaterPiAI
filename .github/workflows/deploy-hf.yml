@@ -1,0 +1,20 @@
+name: Deploy to HF Space
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add hf https://Latoff:$HF_TOKEN@huggingface.co/spaces/Latoff/MasterPiAI
+          git push hf master:main --force

@@ -54,7 +54,7 @@ class YouTubeService:
     def _extract_info(self, url: str) -> dict:
         import yt_dlp
 
-        opts = {"quiet": True, "no_warnings": True, "skip_download": True, "cookiesfrombrowser": ("chrome",)}
+        opts = {"quiet": True, "no_warnings": True, "skip_download": True}
         with yt_dlp.YoutubeDL(opts) as ydl:
             return ydl.extract_info(url, download=False)
 
