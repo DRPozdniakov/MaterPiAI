@@ -15,8 +15,8 @@ class CostCalculator:
         cost_per_min_tts: float,
         cost_per_min_voice_clone: float,
         platform_margin: float,
-        tier_short_min: int,
-        tier_medium_min: int,
+        tier_short_fraction: float,
+        tier_medium_fraction: float,
     ):
         self._rates = {
             "whisper": cost_per_min_whisper,
@@ -25,8 +25,8 @@ class CostCalculator:
             "voice_clone": cost_per_min_voice_clone,
         }
         self._margin = platform_margin
-        self._tier_short = tier_short_min
-        self._tier_medium = tier_medium_min
+        self._short_frac = tier_short_fraction
+        self._medium_frac = tier_medium_fraction
 
     def calculate_tiers(self, duration_seconds: int) -> list[TierCost]:
         full_min = duration_seconds / 60.0
@@ -39,16 +39,16 @@ class CostCalculator:
     def tier_duration_seconds(self, tier: Tier, total_duration_sec: int) -> int | None:
         """Return max seconds for tier, or None for full."""
         if tier == Tier.SHORT:
-            return min(self._tier_short * 60, total_duration_sec)
+            return int(total_duration_sec * self._short_frac)
         if tier == Tier.MEDIUM:
-            return min(self._tier_medium * 60, total_duration_sec)
+            return int(total_duration_sec * self._medium_frac)
         return None
 
     def _tier_duration(self, tier: Tier, full_min: float) -> float:
         if tier == Tier.SHORT:
-            return min(self._tier_short, full_min)
+            return round(full_min * self._short_frac, 1)
         if tier == Tier.MEDIUM:
-            return min(self._tier_medium, full_min)
+            return round(full_min * self._medium_frac, 1)
         return full_min
 
     def _build_tier_cost(self, tier: Tier, minutes: float) -> TierCost:

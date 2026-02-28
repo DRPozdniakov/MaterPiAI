@@ -28,8 +28,8 @@ def get_cost_calculator() -> CostCalculator:
         cost_per_min_tts=settings.cost_per_min_tts,
         cost_per_min_voice_clone=settings.cost_per_min_voice_clone,
         platform_margin=settings.platform_margin,
-        tier_short_min=settings.tier_short_min,
-        tier_medium_min=settings.tier_medium_min,
+        tier_short_fraction=settings.tier_short_fraction,
+        tier_medium_fraction=settings.tier_medium_fraction,
     )
 
 

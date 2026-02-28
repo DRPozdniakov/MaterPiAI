@@ -8,8 +8,11 @@ Usage:
 """
 
 import argparse
+import io
 import sys
 from pathlib import Path
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -51,7 +54,9 @@ def format_usd(value: float) -> str:
 
 def print_breakdown(tiers: list[TierCost], duration_sec: int) -> None:
     print(f"Video duration: {duration_sec // 60}m {duration_sec % 60}s ({duration_sec}s)")
-    print(f"Tier caps: Short={settings.tier_short_min}min, Medium={settings.tier_medium_min}min, Full=entire")
+    short_pct = int(settings.tier_short_fraction * 100)
+    medium_pct = int(settings.tier_medium_fraction * 100)
+    print(f"Tier split: Short={short_pct}%, Medium={medium_pct}%, Full=100%")
     print()
 
     # Rate card
@@ -102,8 +107,8 @@ def main():
         cost_per_min_tts=args.tts_rate or settings.cost_per_min_tts,
         cost_per_min_voice_clone=settings.cost_per_min_voice_clone,
         platform_margin=args.margin if args.margin is not None else settings.platform_margin,
-        tier_short_min=settings.tier_short_min,
-        tier_medium_min=settings.tier_medium_min,
+        tier_short_fraction=settings.tier_short_fraction,
+        tier_medium_fraction=settings.tier_medium_fraction,
     )
 
     tiers = calc.calculate_tiers(duration_sec)
