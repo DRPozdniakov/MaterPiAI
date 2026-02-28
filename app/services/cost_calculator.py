@@ -17,6 +17,8 @@ class CostCalculator:
         platform_margin: float,
         tier_short_fraction: float,
         tier_medium_fraction: float,
+        stripe_fee_pct: float = 0.029,
+        stripe_fee_fixed: float = 0.30,
     ):
         self._rates = {
             "whisper": cost_per_min_whisper,
@@ -27,6 +29,8 @@ class CostCalculator:
         self._margin = platform_margin
         self._short_frac = tier_short_fraction
         self._medium_frac = tier_medium_fraction
+        self._stripe_pct = stripe_fee_pct
+        self._stripe_fixed = stripe_fee_fixed
 
     def calculate_tiers(self, duration_seconds: int) -> list[TierCost]:
         full_min = duration_seconds / 60.0
@@ -56,12 +60,15 @@ class CostCalculator:
         translation = round(minutes * self._rates["translation"], 4)
         tts = round(minutes * self._rates["tts"], 4)
         subtotal = transcription + translation + tts
-        total = round(subtotal * (1 + self._margin), 2)
+        with_margin = subtotal * (1 + self._margin)
+        stripe_fee = round(with_margin * self._stripe_pct + self._stripe_fixed, 2)
+        total = round(with_margin + stripe_fee, 2)
         return TierCost(
             tier=tier,
             duration_minutes=round(minutes, 1),
             transcription_cost=transcription,
             translation_cost=translation,
             tts_cost=tts,
+            stripe_fee=stripe_fee,
             total_cost=total,
         )

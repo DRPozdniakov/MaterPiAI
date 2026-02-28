@@ -30,6 +30,8 @@ def get_cost_calculator() -> CostCalculator:
         platform_margin=settings.platform_margin,
         tier_short_fraction=settings.tier_short_fraction,
         tier_medium_fraction=settings.tier_medium_fraction,
+        stripe_fee_pct=settings.stripe_fee_pct,
+        stripe_fee_fixed=settings.stripe_fee_fixed,
     )
 
 
@@ -66,6 +68,7 @@ def get_tts_service() -> TTSService:
         api_key=settings.elevenlabs_api_key,
         base_url=settings.elevenlabs_base_url,
         chunk_max_chars=settings.tts_chunk_max_chars,
+        model_id=settings.elevenlabs_model_id,
     )
 
 

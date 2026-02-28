@@ -46,6 +46,7 @@ class TierCost(BaseModel):
     transcription_cost: float
     translation_cost: float
     tts_cost: float
+    stripe_fee: float
     total_cost: float
 
 

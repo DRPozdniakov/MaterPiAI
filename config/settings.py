@@ -33,14 +33,21 @@ class Settings(BaseSettings):
 
     # Cost per minute (USD) — for pricing display
     cost_per_min_whisper: float = 0.0        # local faster-whisper, no API cost
-    cost_per_min_translation: float = 0.018  # Claude Sonnet ~1k tokens in+out/min
+    cost_per_min_translation: float = 0.022  # Claude Sonnet chunked (~20% overhead for context)
     cost_per_min_tts: float = 0.10           # ElevenLabs ~1000 chars/min
     cost_per_min_voice_clone: float = 0.0    # included in ElevenLabs plan
     platform_margin: float = 0.25            # 25% markup
 
+    # Stripe fee
+    stripe_fee_pct: float = 0.029            # 2.9%
+    stripe_fee_fixed: float = 0.30           # $0.30 per transaction
+
     # Tier duration as fraction of full video
     tier_short_fraction: float = 0.125   # 12.5% → Full is 8x Short
     tier_medium_fraction: float = 0.40   # 40%   → Full is 2.5x Medium
+
+    # CORS — comma-separated origins in env, parsed to list
+    cors_origins: str = "http://localhost:5173,http://localhost:3000"
 
     # Output
     output_dir: str = "output"

@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class TTSService:
-    def __init__(self, api_key: str, base_url: str, chunk_max_chars: int):
+    def __init__(self, api_key: str, base_url: str, chunk_max_chars: int, model_id: str = "eleven_multilingual_v2"):
         self._api_key = api_key
         self._base_url = base_url
         self._chunk_max = chunk_max_chars
+        self._model_id = model_id
 
     async def synthesize(
         self, text: str, voice_id: str, output_dir: Path
@@ -57,7 +58,7 @@ class TTSService:
         }
         payload = {
             "text": text,
-            "model_id": "eleven_multilingual_v2",
+            "model_id": self._model_id,
             "voice_settings": {
                 "stability": 0.5,
                 "similarity_boost": 0.75,

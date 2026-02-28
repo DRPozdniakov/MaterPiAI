@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MasterPi AI — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe;
+  --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+  --green-50: #f0fdf4; --green-100: #dcfce7; --green-500: #22c55e; --green-600: #16a34a;
+  --orange-50: #fff7ed; --orange-100: #ffedd5; --orange-500: #f97316; --orange-600: #ea580c;
+  --purple-50: #faf5ff; --purple-100: #f3e8ff; --purple-500: #a855f7; --purple-600: #9333ea;
+  --red-50: #fef2f2; --red-100: #fee2e2; --red-500: #ef4444; --red-600: #dc2626;
+  --teal-50: #f0fdfa; --teal-500: #14b8a6; --teal-600: #0d9488;
+  --yellow-50: #fefce8; --yellow-100: #fef9c3; --yellow-500: #eab308;
+  --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+  --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+  --gray-800: #1f2937; --gray-900: #111827;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; color: var(--gray-800); background: #fff; line-height: 1.6; }
+
+/* Header */
+.header { background: var(--gray-900); color: #fff; padding: 48px 32px; text-align: center; }
+.header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+.header p { color: var(--gray-400); font-size: 16px; margin-top: 8px; }
+
+/* Sticky Nav */
+.nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid var(--gray-200); padding: 0 32px; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; gap: 4px; overflow-x: auto; }
+.nav a { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--gray-500); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.nav a:hover { color: var(--gray-800); }
+.nav a.active { color: var(--blue-600); border-bottom-color: var(--blue-600); }
+
+/* Sections */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+.section { padding: 64px 0; border-bottom: 1px solid var(--gray-100); }
+.section-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--blue-600); margin-bottom: 8px; }
+.section h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.section .desc { color: var(--gray-500); font-size: 15px; margin-bottom: 32px; max-width: 700px; }
+
+/* Diagram wrapper */
+.diagram-wrap { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 12px; padding: 40px; overflow-x: auto; margin-bottom: 32px; }
+.diagram-wrap svg { display: block; margin: 0 auto; }
+
+/* Flow steps */
+.flow-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px; }
+.flow-step { display: flex; gap: 12px; padding: 16px; background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--blue-600); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-text h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.step-text p { font-size: 13px; color: var(--gray-500); line-height: 1.5; }
+
+/* Info box */
+.info-box { display: flex; gap: 12px; padding: 16px 20px; border-radius: 8px; margin-top: 24px; font-size: 14px; }
+.info-box.blue { background: var(--blue-50); border: 1px solid var(--blue-200); }
+.info-box.green { background: var(--green-50); border: 1px solid var(--green-100); }
+.info-box.orange { background: var(--orange-50); border: 1px solid var(--orange-100); }
+.info-box .icon { font-size: 20px; flex-shrink: 0; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; font-size: 12px; color: var(--gray-600); }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; }
+
+/* Data model cards */
+.data-models { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 24px; }
+.data-model { border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; }
+.data-model-header { padding: 10px 16px; font-size: 13px; font-weight: 600; color: #fff; }
+.data-model-header.blue { background: var(--blue-600); }
+.data-model-header.red { background: var(--red-500); }
+.data-model-header.green { background: var(--green-600); }
+.data-model-header.orange { background: var(--orange-600); }
+.data-model-header.purple { background: var(--purple-600); }
+.data-model-body { padding: 12px 16px; }
+.field { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid var(--gray-100); }
+.field:last-child { border: none; }
+.fname { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+.ftype { color: var(--gray-400); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.fpk { background: var(--yellow-100); color: var(--gray-700); font-size: 9px; font-weight: 600; padding: 1px 4px; border-radius: 3px; margin-right: 4px; }
+
+/* Footer */
+.footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 32px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Hidden SVG defs -->
+<svg style="position:absolute;width:0;height:0;">
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/></marker>
+    <marker id="ah-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/></marker>
+    <marker id="ah-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/></marker>
+    <marker id="ah-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/></marker>
+    <marker id="ah-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/></marker>
+    <marker id="ah-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a855f7"/></marker>
+  </defs>
+</svg>
+
+<div class="header">
+  <h1>MasterPi AI</h1>
+  <p>YouTube to Translated Audiobook &mdash; System Architecture</p>
+</div>
+
+<div class="nav">
+  <div class="nav-inner">
+    <a href="#overview" class="active">Overview</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#user-flow">User Flow</a>
+    <a href="#data-model">Data Model</a>
+    <a href="#cost-engine">Cost Engine</a>
+    <a href="#streaming">SSE Streaming</a>
+  </div>
+</div>
+
+<!-- ==================== SECTION 1: OVERVIEW ==================== -->
+<div class="container">
+<div class="section" id="overview">
+  <div class="section-label">Section 1</div>
+  <h2>System Overview</h2>
+  <p class="desc">End-to-end architecture: React frontend communicates with FastAPI backend, which orchestrates an 8-stage pipeline across local processing and external APIs.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1020 520" width="1020" height="520" xmlns="http://www.w3.org/2000/svg">
+      <!-- Row 1: Client -->
+      <rect x="20" y="30" width="130" height="56" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+      <text x="85" y="52" font-size="13" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">React UI</text>
+      <text x="85" y="68" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">Lovable / Vite</text>
+
+      <!-- Row 1: FastAPI -->
+      <rect x="250" y="20" width="160" height="76" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="330" y="44" font-size="13" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">FastAPI Gateway</text>
+      <text x="330" y="60" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">CORS + Exception Handlers</text>
+      <rect x="275" y="72" width="48" height="14" rx="3" fill="#dbeafe"/><text x="299" y="82" font-size="9" font-weight="500" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">:8000</text>
+      <rect x="330" y="72" width="55" height="14" rx="3" fill="#dbeafe"/><text x="357" y="82" font-size="9" font-weight="500" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">/api/v1</text>
+
+      <!-- Arrow: Client -> Gateway -->
+      <line x1="150" y1="58" x2="248" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="199" y="50" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">HTTPS</text>
+
+      <!-- Row 1: Job Manager -->
+      <rect x="500" y="20" width="150" height="76" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="575" y="44" font-size="13" font-weight="600" fill="#ef4444" text-anchor="middle" font-family="Inter, sans-serif">Job Manager</text>
+      <text x="575" y="60" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">In-memory state</text>
+      <rect x="525" y="72" width="40" height="14" rx="3" fill="#fee2e2"/><text x="545" y="82" font-size="9" font-weight="500" fill="#ef4444" text-anchor="middle" font-family="Inter, sans-serif">SSE</text>
+      <rect x="572" y="72" width="55" height="14" rx="3" fill="#fee2e2"/><text x="599" y="82" font-size="9" font-weight="500" fill="#ef4444" text-anchor="middle" font-family="Inter, sans-serif">pub/sub</text>
+
+      <!-- Arrow: Gateway -> Job Manager -->
+      <line x1="410" y1="58" x2="498" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Row 1: Pipeline -->
+      <rect x="740" y="20" width="160" height="76" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+      <text x="820" y="44" font-size="13" font-weight="600" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">Pipeline</text>
+      <text x="820" y="60" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">Orchestrator</text>
+      <rect x="770" y="72" width="40" height="14" rx="3" fill="#ffedd5"/><text x="790" y="82" font-size="9" font-weight="500" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">async</text>
+      <rect x="817" y="72" width="60" height="14" rx="3" fill="#ffedd5"/><text x="847" y="82" font-size="9" font-weight="500" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">8 stages</text>
+
+      <!-- Arrow: Job Manager -> Pipeline -->
+      <line x1="650" y1="58" x2="738" y2="58" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="694" y="50" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">run()</text>
+
+      <!-- SSE return arrow -->
+      <path d="M 575 20 L 575 8 L 85 8 L 85 30" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ah-red)"/>
+      <text x="330" y="5" font-size="10" fill="#ef4444" font-family="JetBrains Mono, monospace" text-anchor="middle">SSE events</text>
+
+      <!-- Dashed group: Local Services -->
+      <rect x="20" y="140" width="450" height="180" rx="10" fill="none" stroke="#d1d5db" stroke-dasharray="6 4"/>
+      <text x="40" y="158" font-size="11" font-weight="600" fill="#6b7280" font-family="Inter, sans-serif" letter-spacing="0.8">LOCAL PROCESSING</text>
+
+      <!-- YouTube Service -->
+      <rect x="40" y="175" width="120" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="100" y="196" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">YouTubeService</text>
+      <text x="100" y="212" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">yt-dlp</text>
+
+      <!-- Transcriber -->
+      <rect x="180" y="175" width="120" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="240" y="196" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Transcriber</text>
+      <text x="240" y="212" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">faster-whisper</text>
+
+      <!-- Voice Sample -->
+      <rect x="40" y="245" width="120" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="100" y="266" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">VoiceSample</text>
+      <text x="100" y="282" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">pydub extract</text>
+
+      <!-- Audio Concat -->
+      <rect x="180" y="245" width="120" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="240" y="266" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">AudioConcat</text>
+      <text x="240" y="282" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">pydub merge</text>
+
+      <!-- Cost Calculator -->
+      <rect x="330" y="175" width="120" height="50" rx="8" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+      <text x="390" y="196" font-size="12" font-weight="600" fill="#92400e" text-anchor="middle" font-family="Inter, sans-serif">CostCalculator</text>
+      <text x="390" y="212" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">tier pricing</text>
+
+      <!-- Dashed group: External APIs -->
+      <rect x="520" y="140" width="480" height="180" rx="10" fill="none" stroke="#d1d5db" stroke-dasharray="6 4"/>
+      <text x="540" y="158" font-size="11" font-weight="600" fill="#6b7280" font-family="Inter, sans-serif" letter-spacing="0.8">EXTERNAL APIs</text>
+
+      <!-- ElevenLabs Voice Clone -->
+      <rect x="540" y="175" width="130" height="50" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="605" y="196" font-size="12" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">VoiceCloner</text>
+      <text x="605" y="212" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">ElevenLabs IVC</text>
+
+      <!-- Claude Translator -->
+      <rect x="690" y="175" width="130" height="50" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="755" y="196" font-size="12" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">Translator</text>
+      <text x="755" y="212" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">Claude + LangChain</text>
+
+      <!-- ElevenLabs TTS -->
+      <rect x="840" y="175" width="130" height="50" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="905" y="196" font-size="12" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">TTS Service</text>
+      <text x="905" y="212" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">ElevenLabs v2</text>
+
+      <!-- Stripe -->
+      <rect x="690" y="245" width="130" height="50" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+      <text x="755" y="266" font-size="12" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">Stripe</text>
+      <text x="755" y="282" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">2.9% + $0.30</text>
+
+      <!-- YouTube -->
+      <rect x="540" y="245" width="130" height="50" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="605" y="266" font-size="12" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">YouTube</text>
+      <text x="605" y="282" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">video source</text>
+
+      <!-- Arrow: Pipeline down to services -->
+      <line x1="820" y1="96" x2="820" y2="128" stroke="#f97316" stroke-width="1.5"/>
+      <line x1="200" y1="128" x2="900" y2="128" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="100" y1="128" x2="100" y2="173" stroke="#f97316" stroke-width="1" marker-end="url(#ah-orange)"/>
+      <line x1="240" y1="128" x2="240" y2="173" stroke="#f97316" stroke-width="1" marker-end="url(#ah-orange)"/>
+      <line x1="605" y1="128" x2="605" y2="173" stroke="#f97316" stroke-width="1" marker-end="url(#ah-orange)"/>
+      <line x1="755" y1="128" x2="755" y2="173" stroke="#f97316" stroke-width="1" marker-end="url(#ah-orange)"/>
+      <line x1="905" y1="128" x2="905" y2="173" stroke="#f97316" stroke-width="1" marker-end="url(#ah-orange)"/>
+
+      <!-- Output: File System -->
+      <rect x="330" y="370" width="360" height="60" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.5"/>
+      <text x="510" y="395" font-size="13" font-weight="600" fill="#374151" text-anchor="middle" font-family="Inter, sans-serif">File System (output/)</text>
+      <text x="510" y="413" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">source.wav | voice_sample.wav | tts_chunk_*.mp3 | audiobook.mp3</text>
+
+      <!-- Arrow down to filesystem -->
+      <line x1="510" y1="320" x2="510" y2="368" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Config -->
+      <rect x="40" y="370" width="140" height="50" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="110" y="391" font-size="12" font-weight="600" fill="#374151" text-anchor="middle" font-family="Inter, sans-serif">Settings</text>
+      <text x="110" y="407" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">.env + pydantic</text>
+
+      <!-- Languages -->
+      <rect x="820" y="370" width="140" height="50" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="890" y="391" font-size="12" font-weight="600" fill="#374151" text-anchor="middle" font-family="Inter, sans-serif">29 Languages</text>
+      <text x="890" y="407" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">languages.py</text>
+
+      <!-- Client label for frontend -->
+      <rect x="20" y="460" width="980" height="40" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1"/>
+      <text x="510" y="484" font-size="12" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">React Frontend (Lovable) &mdash; URL Input | Tier Cards | Language Picker | Mock Payment | SSE Progress | Audio Player</text>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#eff6ff;border-color:#2563eb"></div> Local services</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#f0fdf4;border-color:#22c55e"></div> External APIs</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fef2f2;border-color:#ef4444"></div> State / SSE</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fff7ed;border-color:#f97316"></div> Orchestration</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#faf5ff;border-color:#9333ea"></div> Client / Payment</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fefce8;border-color:#eab308"></div> Business logic</div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 2: PIPELINE ==================== -->
+<div class="section" id="pipeline">
+  <div class="section-label">Section 2</div>
+  <h2>Audiobook Pipeline</h2>
+  <p class="desc">The 8-stage processing pipeline runs as a background asyncio task. Each stage updates the job manager, which broadcasts SSE events to subscribed clients.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1020 340" width="1020" height="340" xmlns="http://www.w3.org/2000/svg">
+      <!-- Stage boxes - Row 1 -->
+      <rect x="20" y="40" width="110" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <circle cx="36" cy="54" r="10" fill="#2563eb"/><text x="36" y="55" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">1</text>
+      <text x="75" y="72" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Download</text>
+      <text x="75" y="88" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">yt-dlp</text>
+      <text x="75" y="100" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">5%</text>
+
+      <line x1="130" y1="75" x2="150" y2="75" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <rect x="155" y="40" width="110" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <circle cx="171" cy="54" r="10" fill="#2563eb"/><text x="171" y="55" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">2</text>
+      <text x="210" y="72" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Transcribe</text>
+      <text x="210" y="88" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">faster-whisper</text>
+      <text x="210" y="100" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">20%</text>
+
+      <line x1="265" y1="75" x2="285" y2="75" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <rect x="290" y="40" width="110" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <circle cx="306" cy="54" r="10" fill="#2563eb"/><text x="306" y="55" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">3</text>
+      <text x="345" y="72" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Voice Sample</text>
+      <text x="345" y="88" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">pydub 45s clip</text>
+      <text x="345" y="100" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">35%</text>
+
+      <line x1="400" y1="75" x2="420" y2="75" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <rect x="425" y="40" width="110" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <circle cx="441" cy="54" r="10" fill="#22c55e"/><text x="441" y="55" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">4</text>
+      <text x="480" y="72" font-size="11" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">Clone Voice</text>
+      <text x="480" y="88" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">ElevenLabs IVC</text>
+      <text x="480" y="100" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">45%</text>
+
+      <!-- Row 2 -->
+      <line x1="480" y1="110" x2="480" y2="140" stroke="#9ca3af" stroke-width="1.5"/>
+      <line x1="480" y1="140" x2="905" y2="140" stroke="#9ca3af" stroke-width="1.5"/>
+      <line x1="905" y1="140" x2="905" y2="170" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <rect x="850" y="175" width="110" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <circle cx="866" cy="189" r="10" fill="#22c55e"/><text x="866" y="190" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">5</text>
+      <text x="905" y="207" font-size="11" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">Translate</text>
+      <text x="905" y="223" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">Claude + LangChain</text>
+      <text x="905" y="235" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">60%</text>
+
+      <line x1="848" y1="210" x2="828" y2="210" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <rect x="713" y="175" width="110" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+      <circle cx="729" cy="189" r="10" fill="#22c55e"/><text x="729" y="190" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">6</text>
+      <text x="768" y="207" font-size="11" font-weight="600" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">TTS Synth</text>
+      <text x="768" y="223" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">ElevenLabs v2</text>
+      <text x="768" y="235" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">75%</text>
+
+      <line x1="711" y1="210" x2="691" y2="210" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <rect x="576" y="175" width="110" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <circle cx="592" cy="189" r="10" fill="#2563eb"/><text x="592" y="190" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central" font-family="Inter">7</text>
+      <text x="631" y="207" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Concat</text>
+      <text x="631" y="223" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">pydub merge</text>
+      <text x="631" y="235" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">90%</text>
+
+      <line x1="574" y1="210" x2="554" y2="210" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Complete -->
+      <rect x="420" y="175" width="130" height="70" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+      <text x="485" y="204" font-size="14" font-weight="700" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">COMPLETE</text>
+      <text x="485" y="224" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">audiobook.mp3</text>
+      <text x="485" y="237" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">100%</text>
+
+      <!-- Cleanup arrow -->
+      <rect x="20" y="280" width="200" height="40" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="120" y="304" font-size="11" font-weight="500" fill="#ef4444" text-anchor="middle" font-family="Inter, sans-serif">Cleanup: delete cloned voice</text>
+    </svg>
+  </div>
+
+  <div class="flow-steps">
+    <div class="flow-step"><div class="step-num">1</div><div class="step-text"><h4>Download Audio</h4><p>yt-dlp fetches audio from YouTube. Uses --download-sections for tier-limited duration.</p></div></div>
+    <div class="flow-step"><div class="step-num">2</div><div class="step-text"><h4>Transcribe</h4><p>faster-whisper (large-v3) converts audio to text locally. No API cost.</p></div></div>
+    <div class="flow-step"><div class="step-num">3</div><div class="step-text"><h4>Extract Voice</h4><p>pydub clips first 45 seconds of clean audio as voice sample for cloning.</p></div></div>
+    <div class="flow-step"><div class="step-num">4</div><div class="step-text"><h4>Clone Voice</h4><p>ElevenLabs Instant Voice Clone creates a voice profile from the sample.</p></div></div>
+    <div class="flow-step"><div class="step-num">5</div><div class="step-text"><h4>Translate</h4><p>LangChain + Claude Sonnet translates in chunks with context overlap for continuity.</p></div></div>
+    <div class="flow-step"><div class="step-num">6</div><div class="step-text"><h4>Synthesize</h4><p>ElevenLabs TTS generates audio chunks using the cloned voice in target language.</p></div></div>
+    <div class="flow-step"><div class="step-num">7</div><div class="step-text"><h4>Concatenate</h4><p>pydub merges all TTS chunks into a single audiobook.mp3 file at 192kbps.</p></div></div>
+    <div class="flow-step"><div class="step-num" style="background:#16a34a">8</div><div class="step-text"><h4>Complete</h4><p>Audio ready for streaming/download. Cloned voice is deleted from ElevenLabs.</p></div></div>
+  </div>
+
+  <div class="info-box blue">
+    <div class="icon">&#9432;</div>
+    <div><strong>Chunked translation for quality:</strong> Text is split at ~10k char paragraph boundaries. Each chunk includes 500 chars of the previous translation as context, ensuring consistent terminology and tone across the audiobook.</div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 3: USER FLOW ==================== -->
+<div class="section" id="user-flow">
+  <div class="section-label">Section 3</div>
+  <h2>User Flow</h2>
+  <p class="desc">State machine driving the frontend: INPUT > PREVIEW > PAYMENT > PROCESSING > COMPLETE.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1020 160" width="1020" height="160" xmlns="http://www.w3.org/2000/svg">
+      <!-- States -->
+      <rect x="20" y="40" width="140" height="56" rx="28" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="90" y="64" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Paste URL</text>
+      <text x="90" y="80" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">UrlInput</text>
+
+      <line x1="160" y1="68" x2="200" y2="68" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="180" y="60" font-size="9" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">analyze</text>
+
+      <rect x="205" y="40" width="150" height="56" rx="28" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+      <text x="280" y="64" font-size="11" font-weight="600" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">Preview + Tiers</text>
+      <text x="280" y="80" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">VideoPreview + TierCards</text>
+
+      <line x1="355" y1="68" x2="395" y2="68" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="375" y="60" font-size="9" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">select</text>
+
+      <rect x="400" y="40" width="150" height="56" rx="28" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+      <text x="475" y="64" font-size="11" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">Mock Payment</text>
+      <text x="475" y="80" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">tier + language</text>
+
+      <line x1="550" y1="68" x2="590" y2="68" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="570" y="60" font-size="9" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">pay</text>
+
+      <rect x="595" y="40" width="150" height="56" rx="28" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="670" y="64" font-size="11" font-weight="600" fill="#ef4444" text-anchor="middle" font-family="Inter, sans-serif">Processing</text>
+      <text x="670" y="80" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">SSE progress bar</text>
+
+      <line x1="745" y1="68" x2="785" y2="68" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="765" y="60" font-size="9" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">done</text>
+
+      <rect x="790" y="40" width="150" height="56" rx="28" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+      <text x="865" y="64" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">Audio Player</text>
+      <text x="865" y="80" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">play + download</text>
+
+      <!-- API calls below -->
+      <text x="90" y="120" font-size="9" fill="#2563eb" font-family="JetBrains Mono, monospace" text-anchor="middle">POST /videos/analyze</text>
+      <text x="475" y="120" font-size="9" fill="#9333ea" font-family="JetBrains Mono, monospace" text-anchor="middle">POST /jobs</text>
+      <text x="670" y="120" font-size="9" fill="#ef4444" font-family="JetBrains Mono, monospace" text-anchor="middle">GET /jobs/{id}/stream</text>
+      <text x="865" y="120" font-size="9" fill="#16a34a" font-family="JetBrains Mono, monospace" text-anchor="middle">GET /jobs/{id}/audio</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ==================== SECTION 4: DATA MODEL ==================== -->
+<div class="section" id="data-model">
+  <div class="section-label">Section 4</div>
+  <h2>Data Model</h2>
+  <p class="desc">Core DTOs and in-memory job state. No database &mdash; all state lives in the Python process.</p>
+
+  <div class="data-models">
+    <div class="data-model">
+      <div class="data-model-header red">Job (in-memory)</div>
+      <div class="data-model-body">
+        <div class="field"><span class="fname">job_id</span><span><span class="fpk">PK</span><span class="ftype">str</span></span></div>
+        <div class="field"><span class="fname">url</span><span class="ftype">str</span></div>
+        <div class="field"><span class="fname">tier</span><span class="ftype">Tier enum</span></div>
+        <div class="field"><span class="fname">target_language</span><span class="ftype">str</span></div>
+        <div class="field"><span class="fname">status</span><span class="ftype">JobStatus</span></div>
+        <div class="field"><span class="fname">progress_pct</span><span class="ftype">int</span></div>
+        <div class="field"><span class="fname">current_stage</span><span class="ftype">str</span></div>
+        <div class="field"><span class="fname">audio_path</span><span class="ftype">Path?</span></div>
+        <div class="field"><span class="fname">voice_id</span><span class="ftype">str?</span></div>
+        <div class="field"><span class="fname">subscribers</span><span class="ftype">Queue[]</span></div>
+      </div>
+    </div>
+
+    <div class="data-model">
+      <div class="data-model-header blue">AnalyzeResponse</div>
+      <div class="data-model-body">
+        <div class="field"><span class="fname">video</span><span class="ftype">VideoInfo</span></div>
+        <div class="field"><span class="fname">tiers</span><span class="ftype">TierCost[]</span></div>
+      </div>
+    </div>
+
+    <div class="data-model">
+      <div class="data-model-header orange">TierCost</div>
+      <div class="data-model-body">
+        <div class="field"><span class="fname">tier</span><span class="ftype">Tier</span></div>
+        <div class="field"><span class="fname">duration_minutes</span><span class="ftype">float</span></div>
+        <div class="field"><span class="fname">transcription_cost</span><span class="ftype">float</span></div>
+        <div class="field"><span class="fname">translation_cost</span><span class="ftype">float</span></div>
+        <div class="field"><span class="fname">tts_cost</span><span class="ftype">float</span></div>
+        <div class="field"><span class="fname">stripe_fee</span><span class="ftype">float</span></div>
+        <div class="field"><span class="fname">total_cost</span><span class="ftype">float</span></div>
+      </div>
+    </div>
+
+    <div class="data-model">
+      <div class="data-model-header purple">SSEEvent</div>
+      <div class="data-model-body">
+        <div class="field"><span class="fname">status</span><span class="ftype">JobStatus</span></div>
+        <div class="field"><span class="fname">progress_pct</span><span class="ftype">int</span></div>
+        <div class="field"><span class="fname">current_stage</span><span class="ftype">str</span></div>
+        <div class="field"><span class="fname">error</span><span class="ftype">str?</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box green">
+    <div class="icon">&#9432;</div>
+    <div><strong>In-memory by design:</strong> For a hackathon MVP, job state lives in a Python dict with asyncio.Queue for SSE pub-sub. Swappable to Redis/Postgres later without changing the service interface.</div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 5: COST ENGINE ==================== -->
+<div class="section" id="cost-engine">
+  <div class="section-label">Section 5</div>
+  <h2>Cost Engine</h2>
+  <p class="desc">Transparent per-tier pricing with percentage-based scaling. The user sees the full cost breakdown before paying.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 900 220" width="900" height="220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Input -->
+      <rect x="20" y="70" width="120" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="80" y="92" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">Video Duration</text>
+      <text x="80" y="108" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">seconds</text>
+
+      <line x1="140" y1="95" x2="170" y2="95" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Calculator -->
+      <rect x="175" y="50" width="150" height="90" rx="8" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+      <text x="250" y="76" font-size="13" font-weight="600" fill="#92400e" text-anchor="middle" font-family="Inter, sans-serif">CostCalculator</text>
+      <text x="250" y="95" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">whisper: $0.00/min</text>
+      <text x="250" y="108" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">translate: $0.022/min</text>
+      <text x="250" y="121" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">TTS: $0.10/min</text>
+
+      <line x1="325" y1="95" x2="355" y2="95" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Tier split -->
+      <rect x="360" y="20" width="130" height="40" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+      <text x="425" y="38" font-size="11" font-weight="600" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">SHORT 12.5%</text>
+      <text x="425" y="52" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">1/8 of full</text>
+
+      <rect x="360" y="72" width="130" height="40" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+      <text x="425" y="90" font-size="11" font-weight="600" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">MEDIUM 40%</text>
+      <text x="425" y="104" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">1/2.5 of full</text>
+
+      <rect x="360" y="124" width="130" height="40" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+      <text x="425" y="142" font-size="11" font-weight="600" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">FULL 100%</text>
+      <text x="425" y="156" font-size="9" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">entire video</text>
+
+      <!-- Arrows to margin -->
+      <line x1="490" y1="40" x2="540" y2="90" stroke="#9ca3af" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="490" y1="92" x2="540" y2="92" stroke="#9ca3af" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="490" y1="144" x2="540" y2="94" stroke="#9ca3af" stroke-width="1" marker-end="url(#ah)"/>
+
+      <!-- Margin -->
+      <rect x="545" y="60" width="100" height="66" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+      <text x="595" y="84" font-size="11" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">+ Margin</text>
+      <text x="595" y="100" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">25%</text>
+      <text x="595" y="116" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">markup</text>
+
+      <line x1="645" y1="93" x2="675" y2="93" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Stripe -->
+      <rect x="680" y="60" width="100" height="66" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+      <text x="730" y="84" font-size="11" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">+ Stripe</text>
+      <text x="730" y="100" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">2.9% + $0.30</text>
+      <text x="730" y="116" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">per txn</text>
+
+      <line x1="780" y1="93" x2="810" y2="93" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Total -->
+      <rect x="815" y="68" width="70" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+      <text x="850" y="90" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle" font-family="Inter, sans-serif">TOTAL</text>
+      <text x="850" y="107" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">per tier</text>
+
+      <!-- Note -->
+      <text x="450" y="200" font-size="11" fill="#6b7280" text-anchor="middle" font-family="Inter, sans-serif">Formula: (whisper + translate + TTS) * duration * (1 + margin) + stripe_fee</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ==================== SECTION 6: SSE STREAMING ==================== -->
+<div class="section" id="streaming">
+  <div class="section-label">Section 6</div>
+  <h2>SSE Streaming</h2>
+  <p class="desc">Real-time progress updates from pipeline to browser using Server-Sent Events and asyncio.Queue fan-out.</p>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 900 240" width="900" height="240" xmlns="http://www.w3.org/2000/svg">
+      <!-- Pipeline -->
+      <rect x="20" y="80" width="150" height="56" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+      <text x="95" y="103" font-size="12" font-weight="600" fill="#ea580c" text-anchor="middle" font-family="Inter, sans-serif">Pipeline Stage</text>
+      <text x="95" y="121" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">e.g. TRANSLATING 60%</text>
+
+      <line x1="170" y1="108" x2="230" y2="108" stroke="#f97316" stroke-width="1.5" marker-end="url(#ah-orange)"/>
+      <text x="200" y="100" font-size="10" fill="#ea580c" font-family="JetBrains Mono, monospace" text-anchor="middle">update()</text>
+
+      <!-- Job Manager -->
+      <rect x="235" y="60" width="160" height="96" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="315" y="84" font-size="13" font-weight="600" fill="#ef4444" text-anchor="middle" font-family="Inter, sans-serif">JobManager</text>
+      <text x="315" y="102" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">jobs: dict[str, Job]</text>
+      <text x="315" y="118" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">subscribers: Queue[]</text>
+      <text x="315" y="140" font-size="10" fill="#ef4444" font-family="JetBrains Mono, monospace" text-anchor="middle">put_nowait(event)</text>
+
+      <!-- Fan out arrows -->
+      <line x1="395" y1="90" x2="480" y2="50" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ah-red)"/>
+      <line x1="395" y1="108" x2="480" y2="108" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ah-red)"/>
+      <line x1="395" y1="126" x2="480" y2="166" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ah-red)"/>
+
+      <!-- Queues -->
+      <rect x="485" y="30" width="110" height="36" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+      <text x="540" y="52" font-size="10" fill="#ef4444" text-anchor="middle" font-family="JetBrains Mono, monospace">Queue (sub 1)</text>
+
+      <rect x="485" y="90" width="110" height="36" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+      <text x="540" y="112" font-size="10" fill="#ef4444" text-anchor="middle" font-family="JetBrains Mono, monospace">Queue (sub 2)</text>
+
+      <rect x="485" y="148" width="110" height="36" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+      <text x="540" y="170" font-size="10" fill="#ef4444" text-anchor="middle" font-family="JetBrains Mono, monospace">Queue (sub N)</text>
+
+      <!-- SSE endpoints -->
+      <line x1="595" y1="48" x2="650" y2="48" stroke="#2563eb" stroke-width="1.5" marker-end="url(#ah-blue)"/>
+      <line x1="595" y1="108" x2="650" y2="108" stroke="#2563eb" stroke-width="1.5" marker-end="url(#ah-blue)"/>
+      <line x1="595" y1="166" x2="650" y2="166" stroke="#2563eb" stroke-width="1.5" marker-end="url(#ah-blue)"/>
+
+      <rect x="655" y="20" width="180" height="56" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="745" y="44" font-size="12" font-weight="600" fill="#2563eb" text-anchor="middle" font-family="Inter, sans-serif">EventSourceResponse</text>
+      <text x="745" y="60" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">GET /jobs/{id}/stream</text>
+
+      <line x1="835" y1="48" x2="870" y2="48" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+      <text x="862" y="40" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="end">SSE</text>
+
+      <!-- Browser -->
+      <rect x="655" y="84" width="180" height="48" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+      <text x="745" y="106" font-size="12" font-weight="600" fill="#9333ea" text-anchor="middle" font-family="Inter, sans-serif">Browser EventSource</text>
+      <text x="745" y="120" font-size="10" fill="#9ca3af" text-anchor="middle" font-family="Inter, sans-serif">auto-reconnect</text>
+
+      <!-- JSON sample -->
+      <rect x="500" y="200" width="340" height="30" rx="6" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+      <text x="670" y="219" font-size="10" fill="#6b7280" font-family="JetBrains Mono, monospace" text-anchor="middle">{"status":"translating","progress_pct":60,"current_stage":"Translating text"}</text>
+    </svg>
+  </div>
+
+  <div class="info-box orange">
+    <div class="icon">&#9432;</div>
+    <div><strong>SSE over WebSockets:</strong> Server-Sent Events are simpler, support auto-reconnect natively, and are sufficient for one-way progress updates. The browser's EventSource API handles reconnection automatically if the connection drops.</div>
+  </div>
+</div>
+</div>
+
+<div class="footer">
+  MasterPi AI &mdash; System Architecture &mdash; Generated from source code
+</div>
+
+<script>
+// Sticky nav active state via IntersectionObserver
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('.nav a');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-80px 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// Smooth scroll
+navLinks.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
