@@ -18,11 +18,6 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str = ""
     anthropic_api_key: str = ""
 
-    # Whisper
-    whisper_model: str = "large-v3"
-    whisper_device: str = "cpu"
-    whisper_compute_type: str = "int8"
-
     # ElevenLabs TTS
     elevenlabs_base_url: str = "https://api.elevenlabs.io/v1"
     elevenlabs_model_id: str = "eleven_multilingual_v2"
@@ -30,6 +25,9 @@ class Settings(BaseSettings):
 
     # Voice sample
     voice_sample_duration_sec: int = 45
+
+    # Default voice ID — used when voice cloning is unavailable
+    elevenlabs_default_voice_id: str = "21m00Tcm4TlvDq8ikWAM"
 
     # Cost per minute (USD) — for pricing display
     cost_per_min_whisper: float = 0.0        # local faster-whisper, no API cost
@@ -47,12 +45,15 @@ class Settings(BaseSettings):
     tier_medium_fraction: float = 0.40   # 40%   → Full is 2.5x Medium
 
     # CORS — comma-separated origins in env, parsed to list
-    cors_origins: str = "http://localhost:5173,http://localhost:3000"
+    cors_origins: str = "http://localhost:5173,http://localhost:3000,http://localhost:8080"
+
+    # Demo mode — cap all downloads to N seconds (0 = use real tier duration)
+    demo_max_seconds: int = 60
 
     # Output
     output_dir: str = "output"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()

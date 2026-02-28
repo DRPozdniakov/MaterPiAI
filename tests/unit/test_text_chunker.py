@@ -35,7 +35,7 @@ class TestChunkText:
 
     def test_exclamation_marks(self):
         result = chunk_text("Stop! Go! Now!", max_chars=10)
-        assert result == ["Stop!", "Go! Now!"]
+        assert result == ["Stop! Go!", "Now!"]
 
     def test_question_marks(self):
         result = chunk_text("Why? How? What?", max_chars=10)
@@ -43,7 +43,7 @@ class TestChunkText:
 
     def test_unicode_punctuation(self):
         result = chunk_text("日本語。中国語。韓国語。", max_chars=10)
-        assert result == ["日本語。", "中国語。韓国語。"]
+        assert result == ["日本語。中国語。", "韓国語。"]
 
     def test_mixed_punctuation(self):
         result = chunk_text("Hello! How are you? Fine.", max_chars=25)

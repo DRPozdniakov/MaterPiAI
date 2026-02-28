@@ -37,11 +37,7 @@ def get_cost_calculator() -> CostCalculator:
 
 @lru_cache
 def get_transcriber_service() -> TranscriberService:
-    return TranscriberService(
-        model_size=settings.whisper_model,
-        device=settings.whisper_device,
-        compute_type=settings.whisper_compute_type,
-    )
+    return TranscriberService()
 
 
 @lru_cache
@@ -95,4 +91,6 @@ def get_pipeline() -> PipelineOrchestrator:
         cost_calculator=get_cost_calculator(),
         job_manager=get_job_manager(),
         output_dir=settings.output_dir,
+        demo_max_seconds=settings.demo_max_seconds,
+        default_voice_id=settings.elevenlabs_default_voice_id,
     )

@@ -9,7 +9,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.dependencies import get_job_manager, get_pipeline
 from app.languages import LANGUAGE_CODES
-from app.models import CreateJobRequest, JobResponse, JobStatus
+from app.models import CreateJobRequest, JobResponse, JobStatus, SSEEvent
 from app.services.job_manager import JobManager
 from app.services.pipeline import PipelineOrchestrator
 
@@ -33,7 +33,12 @@ async def create_job(
         target_language=body.target_language,
     )
 
-    asyncio.create_task(pipeline.run(job_id))
+    # Schedule pipeline — small delay so the UI can connect to SSE first
+    async def _run_pipeline():
+        await asyncio.sleep(0.5)
+        await pipeline.run(job_id)
+
+    asyncio.create_task(_run_pipeline())
 
     job = jobs.get_job(job_id)
     return JobResponse(
@@ -68,6 +73,21 @@ async def stream_job(job_id: str, jobs: JobManager = Depends(get_job_manager)):
 
     async def event_generator():
         try:
+            # Send current state immediately so the UI catches up
+            initial = SSEEvent(
+                status=job.status,
+                progress_pct=job.progress_pct,
+                current_stage=job.current_stage,
+                error=job.error,
+            )
+            yield {
+                "event": "progress",
+                "data": initial.model_dump_json(),
+            }
+            # If job already terminal, stop
+            if job.status in (JobStatus.COMPLETED, JobStatus.FAILED):
+                return
+
             while True:
                 event = await asyncio.wait_for(queue.get(), timeout=300)
                 yield {

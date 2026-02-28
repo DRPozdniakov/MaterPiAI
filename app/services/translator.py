@@ -6,7 +6,8 @@ import re
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 
-from app.exceptions import ExternalServiceError
+from app.exceptions import ExternalServiceError, ValidationError
+from app.languages import LANGUAGE_CODES
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,11 @@ class TranslatorService:
 
     async def translate(self, text: str, target_language: str) -> str:
         """Translate text in chunks for quality. Returns full translated text."""
+        if target_language not in LANGUAGE_CODES:
+            raise ValidationError(
+                message=f"Unsupported language: {target_language}",
+                operation="translate",
+            )
         chunks = self._split_into_chunks(text)
         logger.info(
             "Translation: %d chars -> %d chunks (%s)",

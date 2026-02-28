@@ -54,7 +54,7 @@ class YouTubeService:
     def _extract_info(self, url: str) -> dict:
         import yt_dlp
 
-        opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+        opts = {"quiet": True, "no_warnings": True, "skip_download": True, "cookiesfrombrowser": ("chrome",)}
         with yt_dlp.YoutubeDL(opts) as ydl:
             return ydl.extract_info(url, download=False)
 
@@ -66,7 +66,7 @@ class YouTubeService:
         opts = {
             "format": "bestaudio/best",
             "outtmpl": output_path.replace(".wav", ".%(ext)s"),
-            "postprocessors": [
+                        "postprocessors": [
                 {
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": "wav",

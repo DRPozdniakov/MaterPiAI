@@ -54,7 +54,7 @@ class VideoInfo(BaseModel):
     title: str
     channel: str
     duration_seconds: int
-    thumbnail_url: str
+    thumbnail_url: str = ""
 
 
 class AnalyzeResponse(BaseModel):
@@ -65,8 +65,8 @@ class AnalyzeResponse(BaseModel):
 class JobResponse(BaseModel):
     job_id: str
     status: JobStatus
-    progress_pct: int
-    current_stage: str
+    progress_pct: int = 0
+    current_stage: str = ""
     error: str | None = None
 
 

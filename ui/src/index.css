@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 33% 94%;
+    --foreground: 20 20% 16%;
+    --card: 38 40% 90%;
+    --card-foreground: 20 20% 16%;
+    --popover: 36 33% 94%;
+    --popover-foreground: 20 20% 16%;
+    --primary: 350 45% 30%;
+    --primary-foreground: 36 33% 94%;
+    --secondary: 36 30% 82%;
+    --secondary-foreground: 20 20% 16%;
+    --muted: 36 20% 88%;
+    --muted-foreground: 20 10% 45%;
+    --accent: 42 70% 55%;
+    --accent-foreground: 20 20% 12%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 30 25% 78%;
+    --input: 30 25% 78%;
+    --ring: 350 45% 30%;
+    --radius: 0.375rem;
+    --gold: 42 70% 55%;
+    --gold-light: 42 60% 75%;
+    --wine: 350 45% 30%;
+    --wine-dark: 350 50% 20%;
+    --parchment: 36 33% 94%;
+    --parchment-dark: 36 30% 82%;
+    --marble: 36 15% 96%;
+    --bronze: 30 50% 40%;
+    --terracotta: 15 55% 50%;
+    --mosaic-dark: 25 30% 22%;
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Crimson Text', serif;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 20 20% 10%;
+    --foreground: 36 33% 94%;
+    --card: 20 20% 14%;
+    --card-foreground: 36 33% 94%;
+    --popover: 20 20% 10%;
+    --popover-foreground: 36 33% 94%;
+    --primary: 42 70% 55%;
+    --primary-foreground: 20 20% 10%;
+    --secondary: 20 15% 20%;
+    --secondary-foreground: 36 33% 94%;
+    --muted: 20 15% 18%;
+    --muted-foreground: 36 15% 60%;
+    --accent: 350 45% 40%;
+    --accent-foreground: 36 33% 94%;
+    --border: 20 15% 25%;
+    --input: 20 15% 25%;
+    --ring: 42 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+/* ── Mosaic-inspired decorative patterns ── */
+
+@layer components {
+  /* Greek key / meander border using repeating gradients */
+  .mosaic-border {
+    position: relative;
+    border: 3px solid hsl(var(--gold));
+    outline: 3px solid hsl(var(--wine));
+    outline-offset: 3px;
+  }
+  .mosaic-border::before {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border: 1px solid hsl(var(--gold) / 0.4);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* Chevron / herringbone top bar */
+  .chevron-bar {
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      hsl(var(--gold)) 0px,
+      hsl(var(--gold)) 8px,
+      hsl(var(--wine)) 8px,
+      hsl(var(--wine)) 16px,
+      hsl(var(--terracotta)) 16px,
+      hsl(var(--terracotta)) 24px,
+      hsl(var(--mosaic-dark)) 24px,
+      hsl(var(--mosaic-dark)) 32px
+    );
+  }
+
+  /* Diamond mosaic pattern background */
+  .mosaic-diamonds {
+    background-image:
+      linear-gradient(45deg, hsl(var(--gold) / 0.06) 25%, transparent 25%),
+      linear-gradient(-45deg, hsl(var(--gold) / 0.06) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, hsl(var(--gold) / 0.06) 75%),
+      linear-gradient(-45deg, transparent 75%, hsl(var(--gold) / 0.06) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  }
+
+  /* Braided rope border effect */
+  .rope-border {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        hsl(var(--gold)),
+        hsl(var(--gold)) 2px,
+        transparent 2px,
+        transparent 6px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        hsl(var(--wine) / 0.5),
+        hsl(var(--wine) / 0.5) 2px,
+        transparent 2px,
+        transparent 6px
+      );
+    background-size: 2px 100%, 2px 100%;
+    background-position: 0 0, 0 3px;
+    background-repeat: repeat-y;
+  }
+
+  /* Corner ornaments using radial gradients */
+  .corner-ornaments {
+    position: relative;
+  }
+  .corner-ornaments::before,
+  .corner-ornaments::after {
+    content: '❧';
+    position: absolute;
+    color: hsl(var(--gold));
+    font-size: 1.5rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .corner-ornaments::before {
+    top: 8px;
+    left: 12px;
+  }
+  .corner-ornaments::after {
+    bottom: 8px;
+    right: 12px;
+    transform: rotate(180deg);
+  }
+
+  /* Scroll / parchment card look */
+  .parchment-card {
+    background:
+      linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--parchment-dark) / 0.3) 50%, hsl(var(--card)) 100%);
+    box-shadow:
+      inset 0 0 30px hsl(var(--gold) / 0.05),
+      0 4px 20px hsl(var(--mosaic-dark) / 0.15),
+      0 1px 3px hsl(var(--mosaic-dark) / 0.1);
+  }
+
+  /* Rich mosaic tile background inspired by Roman floor mosaics */
+  .mosaic-tile-bg {
+    background-color: hsl(var(--background));
+    background-image:
+      /* Large diamond lattice */
+      linear-gradient(45deg, hsl(var(--gold) / 0.05) 25%, transparent 25%),
+      linear-gradient(-45deg, hsl(var(--gold) / 0.05) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, hsl(var(--gold) / 0.05) 75%),
+      linear-gradient(-45deg, transparent 75%, hsl(var(--gold) / 0.05) 75%),
+      /* Fine grid overlay */
+      linear-gradient(hsl(var(--gold) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--gold) / 0.04) 1px, transparent 1px),
+      /* Subtle radial medallion repeating */
+      radial-gradient(circle at 50% 50%, hsl(var(--wine) / 0.03) 0%, hsl(var(--wine) / 0.03) 8%, transparent 8%, transparent 12%, hsl(var(--gold) / 0.04) 12%, hsl(var(--gold) / 0.04) 14%, transparent 14%);
+    background-size: 40px 40px, 40px 40px, 40px 40px, 40px 40px, 12px 12px, 12px 12px, 80px 80px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0, 0 0, 0 0, 0 0;
+  }
+
+  /* Braided / guilloche ring for circular widgets */
+  .braid-ring {
+    background-image:
+      conic-gradient(
+        from 0deg,
+        hsl(var(--gold) / 0.15) 0deg, transparent 8deg,
+        transparent 37deg, hsl(var(--wine) / 0.1) 45deg,
+        transparent 53deg, transparent 82deg,
+        hsl(var(--gold) / 0.15) 90deg, transparent 98deg,
+        transparent 127deg, hsl(var(--wine) / 0.1) 135deg,
+        transparent 143deg, transparent 172deg,
+        hsl(var(--gold) / 0.15) 180deg, transparent 188deg,
+        transparent 217deg, hsl(var(--wine) / 0.1) 225deg,
+        transparent 233deg, transparent 262deg,
+        hsl(var(--gold) / 0.15) 270deg, transparent 278deg,
+        transparent 307deg, hsl(var(--wine) / 0.1) 315deg,
+        transparent 323deg, transparent 352deg,
+        hsl(var(--gold) / 0.15) 360deg
+      );
+  }
+
+  /* Concentric ring ornament for center medallions */
+  .medallion-rings {
+    background-image:
+      radial-gradient(circle, 
+        transparent 0%, transparent 28%,
+        hsl(var(--gold) / 0.12) 28%, hsl(var(--gold) / 0.12) 30%,
+        transparent 30%, transparent 38%,
+        hsl(var(--wine) / 0.08) 38%, hsl(var(--wine) / 0.08) 39.5%,
+        transparent 39.5%, transparent 46%,
+        hsl(var(--gold) / 0.06) 46%, hsl(var(--gold) / 0.06) 47%,
+        transparent 47%, transparent 60%,
+        hsl(var(--gold) / 0.08) 60%, hsl(var(--gold) / 0.08) 61.5%,
+        transparent 61.5%, transparent 70%,
+        hsl(var(--wine) / 0.06) 70%, hsl(var(--wine) / 0.06) 71%,
+        transparent 71%
+      );
+  }
+
+  /* Corner rosette flourish for page corners */
+  .corner-rosettes::before,
+  .corner-rosettes::after {
+    content: '✿';
+    position: absolute;
+    color: hsl(var(--gold) / 0.3);
+    font-size: 2rem;
+    pointer-events: none;
+  }
+  .corner-rosettes::before { top: 16px; left: 16px; }
+  .corner-rosettes::after { top: 16px; right: 16px; }
+
+  /* Laurel divider */
+  .laurel-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .laurel-divider::before,
+  .laurel-divider::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold)), transparent);
+  }
+  /* Scroll / parchment paper with rolled edges */
+  .scroll-paper {
+    position: relative;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--parchment-dark) / 0.6) 0%,
+      hsl(var(--card)) 8%,
+      hsl(var(--card)) 92%,
+      hsl(var(--parchment-dark) / 0.6) 100%
+    );
+    box-shadow:
+      inset 0 0 40px hsl(var(--gold) / 0.05),
+      0 4px 24px hsl(var(--mosaic-dark) / 0.18);
+  }
+  .scroll-paper::before,
+  .scroll-paper::after {
+    content: '';
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    height: 28px;
+    border-radius: 50%;
+    z-index: 2;
+  }
+  .scroll-paper::before {
+    top: -14px;
+    background: linear-gradient(
+      180deg,
+      hsl(36 30% 72%) 0%,
+      hsl(36 35% 80%) 40%,
+      hsl(var(--card)) 100%
+    );
+    box-shadow:
+      0 2px 6px hsl(var(--mosaic-dark) / 0.15),
+      inset 0 -3px 6px hsl(var(--gold) / 0.1);
+  }
+  .scroll-paper::after {
+    bottom: -14px;
+    background: linear-gradient(
+      0deg,
+      hsl(36 30% 72%) 0%,
+      hsl(36 35% 80%) 40%,
+      hsl(var(--card)) 100%
+    );
+    box-shadow:
+      0 -2px 6px hsl(var(--mosaic-dark) / 0.15),
+      inset 0 3px 6px hsl(var(--gold) / 0.1);
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-body { font-family: var(--font-body); }
+  .text-gold { color: hsl(var(--gold)); }
+  .bg-gold { background-color: hsl(var(--gold)); }
+  .text-wine { color: hsl(var(--wine)); }
+  .bg-wine { background-color: hsl(var(--wine)); }
+  .bg-parchment { background-color: hsl(var(--parchment)); }
+  .bg-marble { background-color: hsl(var(--marble)); }
+  .border-gold { border-color: hsl(var(--gold)); }
+  .text-terracotta { color: hsl(var(--terracotta)); }
+  .text-bronze { color: hsl(var(--bronze)); }
+  .border-wine { border-color: hsl(var(--wine)); }
+}

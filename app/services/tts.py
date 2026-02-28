@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 from pathlib import Path
 
 import httpx
@@ -9,6 +10,52 @@ import httpx
 from app.exceptions import ExternalServiceError
 
 logger = logging.getLogger(__name__)
+
+
+def chunk_text(text: str, max_chars: int = 4500) -> list[str]:
+    """Split text into chunks at sentence boundaries (.!?。).
+
+    Uses forward greedy packing — accumulates sentences until adding
+    the next one would exceed max_chars, then starts a new chunk.
+    A single sentence longer than max_chars is kept as its own chunk.
+    """
+    text = text.strip()
+    if not text:
+        return []
+    if len(text) <= max_chars:
+        return [text]
+
+    # Find all sentence-end positions (after .!?。 plus trailing whitespace)
+    sentence_ends = [m.end() for m in re.finditer(r"[.!?。]\s*", text)]
+    if not sentence_ends or sentence_ends[-1] < len(text):
+        sentence_ends.append(len(text))
+
+    chunks = []
+    chunk_start = 0
+    last_valid_end = chunk_start
+
+    for end in sentence_ends:
+        candidate = text[chunk_start:end].strip()
+        if len(candidate) <= max_chars:
+            last_valid_end = end
+        else:
+            if last_valid_end > chunk_start:
+                chunks.append(text[chunk_start:last_valid_end].strip())
+                chunk_start = last_valid_end
+                # Re-evaluate current boundary from new start
+                if len(text[chunk_start:end].strip()) <= max_chars:
+                    last_valid_end = end
+                else:
+                    last_valid_end = end
+            else:
+                # Single sentence exceeds max_chars — keep it whole
+                last_valid_end = end
+
+    remaining = text[chunk_start:].strip()
+    if remaining:
+        chunks.append(remaining)
+
+    return chunks
 
 
 class TTSService:
@@ -19,11 +66,16 @@ class TTSService:
         self._model_id = model_id
 
     async def synthesize(
-        self, text: str, voice_id: str, output_dir: Path
+        self,
+        text: str,
+        voice_id: str,
+        output_dir: Path,
+        progress_cb: callable = None,
     ) -> list[Path]:
         """Synthesize text to MP3 chunks. Returns list of chunk file paths."""
-        chunks = self._split_text(text)
-        logger.info("TTS: %d chunks for %d chars", len(chunks), len(text))
+        chunks = chunk_text(text, self._chunk_max)
+        total = len(chunks)
+        logger.info("TTS: %d chunks for %d chars", total, len(text))
         paths = []
         for i, chunk in enumerate(chunks):
             path = output_dir / f"tts_chunk_{i:04d}.mp3"
@@ -31,24 +83,9 @@ class TTSService:
                 self._synthesize_chunk, chunk, voice_id, path
             )
             paths.append(path)
+            if progress_cb:
+                progress_cb(i + 1, total)
         return paths
-
-    def _split_text(self, text: str) -> list[str]:
-        """Split text into chunks at sentence boundaries."""
-        if len(text) <= self._chunk_max:
-            return [text]
-
-        chunks = []
-        current = ""
-        for sentence in text.replace(". ", ".\n").split("\n"):
-            if len(current) + len(sentence) + 1 > self._chunk_max and current:
-                chunks.append(current.strip())
-                current = sentence
-            else:
-                current = f"{current} {sentence}" if current else sentence
-        if current.strip():
-            chunks.append(current.strip())
-        return chunks
 
     def _synthesize_chunk(self, text: str, voice_id: str, output_path: Path) -> None:
         url = f"{self._base_url}/text-to-speech/{voice_id}"
